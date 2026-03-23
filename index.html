@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DIAGNOSIS — Enneagram Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a08;
+    --surface: #111110;
+    --card: #181816;
+    --border: #2a2a26;
+    --accent: #c8b97a;
+    --accent2: #7ab8c8;
+    --red: #c87a7a;
+    --text: #e8e4d8;
+    --muted: #6b6b60;
+    --dim: #3a3a34;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.6;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,8,0.95);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 8px;
+    color: var(--accent);
+  }
+
+  .header-tag {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 80px 40px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .hero-label {
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-label::before {
+    content: '';
+    width: 40px;
+    height: 1px;
+    background: var(--muted);
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(64px, 10vw, 140px);
+    line-height: 0.9;
+    letter-spacing: 2px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .hero h1 span {
+    color: var(--accent);
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+  }
+
+  .hero-desc {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-top: 20px;
+    line-height: 1.8;
+    max-width: 480px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 300;
+  }
+
+  /* SCORE INPUT SECTION */
+  .input-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px 60px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 4px;
+    color: var(--accent);
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* SCORE GRID */
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 768px) {
+    .score-grid { grid-template-columns: repeat(2, 1fr); }
+    header { padding: 0 20px; }
+    .hero, .input-section, .result-section { padding-left: 20px; padding-right: 20px; }
+    .hero h1 { font-size: 60px; }
+  }
+
+  .score-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 20px;
+    transition: border-color 0.3s, background 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .score-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .score-card:focus-within {
+    border-color: var(--accent);
+    background: #1c1c18;
+  }
+
+  .score-card:focus-within::before {
+    opacity: 1;
+  }
+
+  .type-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    line-height: 1;
+    color: var(--dim);
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    transition: color 0.3s;
+  }
+
+  .score-card:focus-within .type-num { color: var(--accent); opacity: 0.3; }
+
+  .type-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .type-name {
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 16px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  .score-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .score-input {
+    background: var(--surface);
+    border: 1px solid var(--dim);
+    color: var(--text);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 2px;
+    width: 80px;
+    text-align: center;
+    padding: 8px 4px;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+
+  .score-input::-webkit-inner-spin-button,
+  .score-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .score-input:focus { border-color: var(--accent); }
+
+  .score-range {
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .score-bar {
+    margin-top: 12px;
+    height: 3px;
+    background: var(--dim);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+
+  /* ANALYZE BUTTON */
+  .analyze-btn {
+    display: block;
+    width: 100%;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 6px;
+    padding: 20px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-bottom: 8px;
+  }
+
+  .analyze-btn:hover { background: #d4c78a; }
+  .analyze-btn:active { transform: scale(0.99); }
+
+  .analyze-hint {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-align: center;
+  }
+
+  /* LOADING */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,8,0.92);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .loading-overlay.active { display: flex; }
+
+  .loading-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    letter-spacing: 8px;
+    color: var(--accent);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .loading-bar-wrap {
+    width: 240px;
+    height: 2px;
+    background: var(--dim);
+  }
+
+  .loading-bar {
+    height: 100%;
+    background: var(--accent);
+    animation: loadbar 2s ease-in-out infinite;
+  }
+
+  @keyframes loadbar {
+    0% { width: 0%; margin-left: 0%; }
+    50% { width: 70%; margin-left: 15%; }
+    100% { width: 0%; margin-left: 100%; }
+  }
+
+  .loading-sub {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  /* RESULTS */
+  .result-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px 80px;
+    display: none;
+  }
+
+  .result-section.active { display: block; }
+
+  .result-top {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-bottom: 2px;
+  }
+
+  @media (max-width: 900px) {
+    .result-top { grid-template-columns: 1fr; }
+  }
+
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 28px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-card:nth-child(2) { animation-delay: 0.1s; }
+  .result-card:nth-child(3) { animation-delay: 0.2s; }
+  .result-card:nth-child(4) { animation-delay: 0.3s; }
+  .result-card:nth-child(5) { animation-delay: 0.4s; }
+
+  .result-card-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .result-card-label::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .result-content {
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 300;
+  }
+
+  .result-content .highlight {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .result-content .highlight2 {
+    color: var(--accent2);
+    font-weight: 500;
+  }
+
+  /* DOMINANT TYPE DISPLAY */
+  .dominant-type {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .dominant-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+    line-height: 1;
+    color: var(--accent);
+  }
+
+  .dominant-info {
+    padding-bottom: 8px;
+  }
+
+  .dominant-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    font-style: italic;
+    color: var(--text);
+  }
+
+  .dominant-eng {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* RADAR CHART */
+  .radar-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 28px;
+    margin-bottom: 2px;
+    animation: fadeUp 0.6s ease both;
+    animation-delay: 0.15s;
+  }
+
+  .radar-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+  }
+
+  /* RANKING */
+  .rank-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .rank-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .rank-pos {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    color: var(--muted);
+    width: 24px;
+  }
+
+  .rank-item:first-child .rank-pos { color: var(--accent); }
+  .rank-item:nth-child(2) .rank-pos { color: var(--text); }
+  .rank-item:nth-child(3) .rank-pos { color: #8a8a7a; }
+
+  .rank-type {
+    font-size: 11px;
+    color: var(--muted);
+    width: 20px;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+
+  .rank-name {
+    font-size: 11px;
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    width: 80px;
+    flex-shrink: 0;
+  }
+
+  .rank-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: var(--dim);
+  }
+
+  .rank-bar {
+    height: 100%;
+    background: var(--accent);
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .rank-item:nth-child(2) .rank-bar { background: #a8a88a; }
+  .rank-item:nth-child(3) .rank-bar { background: #6a6a5a; }
+  .rank-item:nth-child(n+4) .rank-bar { background: var(--dim); background: #3a3a30; }
+
+  .rank-score {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: var(--muted);
+    width: 36px;
+    text-align: right;
+  }
+
+  .rank-item:first-child .rank-score { color: var(--accent); }
+
+  /* FULL RESULT GRID */
+  .result-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 2px;
+  }
+
+  @media (max-width: 900px) {
+    .result-grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* RESET BTN */
+  .reset-btn {
+    display: block;
+    width: 100%;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    padding: 16px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    margin-top: 24px;
+    text-transform: uppercase;
+  }
+
+  .reset-btn:hover { color: var(--text); border-color: var(--muted); }
+
+  /* TYPE TAGS */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--dim);
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin: 3px 3px 3px 0;
+  }
+
+  .tag.accent { background: rgba(200, 185, 122, 0.15); color: var(--accent); }
+  .tag.blue { background: rgba(122, 184, 200, 0.15); color: var(--accent2); }
+  .tag.red { background: rgba(200, 122, 122, 0.15); color: var(--red); }
+
+  /* ERROR */
+  .error-msg {
+    display: none;
+    color: var(--red);
+    font-size: 11px;
+    letter-spacing: 2px;
+    margin-top: 8px;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .error-msg.visible { display: block; }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 60px 0;
+  }
+
+  /* INTERACTION SECTION */
+  .ix-groups {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 700px) { .ix-groups { grid-template-columns: 1fr; } }
+
+  .ix-gbox {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+  }
+  .ix-gtitle {
+    font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+  }
+  .ix-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .ix-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .ix-num { font-family: 'Bebas Neue', sans-serif; font-size: 20px; line-height: 1; width: 22px; flex-shrink: 0; }
+  .ix-name { font-size: 10px; color: var(--muted); font-family: 'Noto Sans KR', sans-serif; flex: 1; }
+  .ix-bwrap { width: 56px; height: 3px; background: var(--dim); }
+  .ix-bfill { height: 100%; transition: width 0.8s ease; }
+  .ix-score { font-family: 'Bebas Neue', sans-serif; font-size: 18px; width: 28px; text-align: right; }
+  .ix-avg {
+    margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--dim);
+    font-size: 9px; letter-spacing: 2px; color: var(--muted);
+    text-transform: uppercase; display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .ix-avg-val { font-family: 'Bebas Neue', sans-serif; font-size: 26px; }
+
+  /* pair rows */
+  .ix-pair {
+    display: grid; grid-template-columns: 76px 1fr auto;
+    align-items: start; gap: 14px;
+    padding: 12px 0; border-bottom: 1px solid var(--dim);
+  }
+  .ix-pair:last-child { border-bottom: none; }
+  .ix-badges { display: flex; flex-direction: column; gap: 3px; }
+  .ix-bh { font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 1px; padding: 2px 6px; background: rgba(200,185,122,0.15); color: var(--accent); display: inline-block; }
+  .ix-bl { font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 1px; padding: 2px 6px; background: rgba(122,184,200,0.1); color: var(--accent2); display: inline-block; }
+  .ix-arrow { font-size: 9px; color: var(--dim); text-align: center; padding: 2px 0; letter-spacing: 1px; }
+  .ix-desc { font-size: 11px; line-height: 1.75; color: var(--muted); font-family: 'Noto Sans KR', sans-serif; font-weight: 300; }
+  .ix-tension { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 3px 7px; white-space: nowrap; align-self: start; margin-top: 2px; }
+  .ix-t-high { background: rgba(200,122,122,0.15); color: var(--red); }
+  .ix-t-mid  { background: rgba(200,185,122,0.12); color: var(--accent); }
+  .ix-t-low  { background: rgba(58,58,52,0.6); color: var(--muted); }
+
+  /* balance bar */
+  .ix-balance { margin-top: 20px; padding: 16px; background: var(--surface); border: 1px solid var(--border); }
+  .ix-bal-hdr { display: flex; justify-content: space-between; font-size: 9px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+  .ix-bal-track { position: relative; height: 8px; background: var(--dim); margin-bottom: 6px; overflow: hidden; }
+  .ix-bal-h { position: absolute; top: 0; left: 0; height: 100%; background: var(--accent); transition: width 1s ease; }
+  .ix-bal-l { position: absolute; top: 0; right: 0; height: 100%; background: var(--accent2); transition: width 1s ease; }
+  .ix-bal-mid { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 2px; height: 100%; background: var(--bg); }
+  .ix-bal-feet { display: flex; justify-content: space-between; font-size: 9px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 14px; }
+  .ix-bal-result { font-size: 12px; line-height: 1.85; color: var(--text); font-family: 'Noto Sans KR', sans-serif; font-weight: 300; }
+
+  .typing::after {
+    content: '|';
+    animation: blink 1s step-end infinite;
+    color: var(--accent);
+  }
+
+  /* SOLUTION SECTION */
+  .solution-banner {
+    margin-top: 2px;
+    background: var(--card);
+    border: 1px solid var(--accent);
+    overflow: hidden;
+    animation: fadeUp 0.7s ease both;
+    animation-delay: 0.6s;
+  }
+
+  .solution-header {
+    padding: 40px 40px 32px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .solution-header::before {
+    content: 'SOLUTION';
+    position: absolute;
+    right: -10px;
+    top: -20px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 120px;
+    color: rgba(200,185,122,0.04);
+    letter-spacing: 4px;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .solution-eyebrow {
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .solution-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    letter-spacing: 6px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .solution-title-dot { color: var(--accent); }
+
+  .solution-sub {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 300;
+  }
+
+  .solution-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+  }
+
+  @media (max-width: 900px) { .solution-grid { grid-template-columns: 1fr; } }
+
+  .sol-card {
+    padding: 28px 28px 24px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+
+  .sol-card:hover { background: #1c1c18; }
+  .sol-card:nth-child(3n) { border-right: none; }
+
+  .sol-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 56px;
+    line-height: 1;
+    color: rgba(200,185,122,0.08);
+    position: absolute;
+    top: 8px;
+    right: 14px;
+  }
+
+  .sol-icon {
+    font-size: 20px;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .sol-area {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .sol-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px;
+    color: var(--text);
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+
+  .sol-desc {
+    font-size: 12px;
+    line-height: 1.85;
+    color: var(--muted);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 300;
+  }
+
+  .sol-tip {
+    margin-top: 12px;
+    padding: 8px 10px;
+    background: rgba(200,185,122,0.06);
+    border-left: 2px solid var(--accent);
+    font-size: 11px;
+    color: var(--accent);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  .sol-activities {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .sol-act-item {
+    padding: 7px 10px;
+    background: rgba(200,185,122,0.06);
+    border-left: 2px solid var(--accent);
+    font-size: 11px;
+    color: var(--accent);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .solution-closing {
+    padding: 28px 40px;
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--muted);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 300;
+    border-top: 1px solid var(--border);
+  }
+
+  .solution-closing strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">DIAGNOSIS</div>
+  <div class="header-tag">Enneagram Analysis System v1.0</div>
+</header>
+
+<div class="hero">
+  <div class="hero-label">Self-Discovery Engine</div>
+  <h1>DIAGNOSIS</h1>
+  <p class="hero-desc">
+    9가지 에니어그램 유형별 점수를 입력하면, AI가 당신의 성격 구조를 다각도로 분석합니다. 지배 유형·날개·통합/분열 방향까지 심층 해석을 제공합니다.
+  </p>
+</div>
+
+<div class="input-section">
+  <div class="section-header">
+    <span class="section-title">SCORE INPUT</span>
+    <div class="section-line"></div>
+    <span style="font-size:10px;color:var(--muted);letter-spacing:2px;">0 – 45</span>
+  </div>
+
+  <div class="score-grid" id="scoreGrid"></div>
+
+  <div class="error-msg" id="errorMsg">⚠ 모든 항목에 0–100 사이의 점수를 입력해주세요.</div>
+
+  <button class="analyze-btn" onclick="analyze()">ANALYZE MY PATTERN</button>
+  <p class="analyze-hint">AI가 에니어그램 점수를 심층 분석합니다</p>
+</div>
+
+<div class="result-section" id="resultSection">
+  <div class="section-header">
+    <span class="section-title">DIAGNOSIS RESULT</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="result-top">
+    <!-- Dominant type -->
+    <div class="result-card" id="dominantCard">
+      <div class="result-card-label">Primary Type</div>
+      <div id="dominantDisplay"></div>
+      <div class="result-content" id="dominantContent"></div>
+    </div>
+
+    <!-- Score ranking -->
+    <div class="result-card" id="rankCard">
+      <div class="result-card-label">Type Ranking</div>
+      <div class="rank-list" id="rankList"></div>
+    </div>
+  </div>
+
+  <!-- Radar -->
+  <div class="radar-card">
+    <div class="result-card-label">Pattern Visualization</div>
+    <div class="radar-container">
+      <canvas id="radarCanvas" width="420" height="380"></canvas>
+    </div>
+  </div>
+
+  <div class="result-grid-3">
+    <div class="result-card">
+      <div class="result-card-label">Wing Analysis</div>
+      <div class="result-content" id="wingContent"></div>
+    </div>
+    <div class="result-card">
+      <div class="result-card-label">Integration / Disintegration</div>
+      <div class="result-content" id="arrowContent"></div>
+    </div>
+    <div class="result-card">
+      <div class="result-card-label">Core Motivation</div>
+      <div class="result-content" id="motivContent"></div>
+    </div>
+  </div>
+
+  <!-- Score-Based Interaction -->
+  <div class="result-card" style="margin-top:2px;animation-delay:0.45s;">
+    <div class="result-card-label">High Score ↔ Low Score Interaction</div>
+    <div id="interactionContent"></div>
+  </div>
+
+  <div class="result-card" style="margin-top:2px;animation-delay:0.5s;">
+    <div class="result-card-label">AI Deep Analysis</div>
+    <div class="result-content" id="aiContent"></div>
+  </div>
+
+  <!-- Solution -->
+  <div class="solution-banner" id="solutionSection" style="display:none;">
+    <div class="solution-header">
+      <div class="solution-eyebrow">Based on your pattern</div>
+      <div class="solution-title">SOLUTION<span class="solution-title-dot">.</span></div>
+      <div class="solution-sub">지금 당신에게 필요한 것들</div>
+    </div>
+    <div class="solution-grid" id="solutionGrid"></div>
+    <div class="solution-closing" id="solutionClosing"></div>
+  </div>
+
+  <button class="reset-btn" onclick="reset()">← Reset &amp; Re-enter Scores</button>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-text">ANALYZING</div>
+  <div class="loading-bar-wrap"><div class="loading-bar"></div></div>
+  <div class="loading-sub">패턴을 분석하는 중...</div>
+</div>
+
+<script>
+const TYPES = [
+  { num: 1, kor: "개혁가", eng: "The Reformer", center: "장", triad: "anger", wings: [9, 2], integration: 7, disintegration: 4 },
+  { num: 2, kor: "조력자", eng: "The Helper", center: "가슴", triad: "shame", wings: [1, 3], integration: 4, disintegration: 8 },
+  { num: 3, kor: "성취자", eng: "The Achiever", center: "가슴", triad: "shame", wings: [2, 4], integration: 6, disintegration: 9 },
+  { num: 4, kor: "예술가", eng: "The Individualist", center: "가슴", triad: "shame", wings: [3, 5], integration: 1, disintegration: 2 },
+  { num: 5, kor: "탐구자", eng: "The Investigator", center: "머리", triad: "fear", wings: [4, 6], integration: 8, disintegration: 7 },
+  { num: 6, kor: "충성가", eng: "The Loyalist", center: "머리", triad: "fear", wings: [5, 7], integration: 9, disintegration: 3 },
+  { num: 7, kor: "낙천가", eng: "The Enthusiast", center: "머리", triad: "fear", wings: [6, 8], integration: 5, disintegration: 1 },
+  { num: 8, kor: "도전자", eng: "The Challenger", center: "장", triad: "anger", wings: [7, 9], integration: 2, disintegration: 5 },
+  { num: 9, kor: "평화주의자", eng: "The Peacemaker", center: "장", triad: "anger", wings: [8, 1], integration: 3, disintegration: 6 },
+];
+
+const CORE_DESC = {
+  1: { fear: "결함, 불완전함에 대한 두려움", desire: "옳고 선하며 완전해지고 싶은 욕망", vice: "분노, 완벽주의", virtue: "평온함, 평정심" },
+  2: { fear: "사랑받지 못함, 불필요한 존재에 대한 두려움", desire: "사랑받고 원해지고 싶은 욕망", vice: "교만, 아첨", virtue: "겸손함" },
+  3: { fear: "무가치함, 실패에 대한 두려움", desire: "가치 있고 성공한 사람이 되고 싶은 욕망", vice: "기만, 허영", virtue: "진실성" },
+  4: { fear: "정체성 없음, 평범함에 대한 두려움", desire: "자신만의 정체성과 의미를 찾으려는 욕망", vice: "시기, 우울", virtue: "공정한 균형" },
+  5: { fear: "무능함, 압도당하는 것에 대한 두려움", desire: "유능하고 이해력 있는 사람이 되고 싶은 욕망", vice: "탐욕, 고립", virtue: "무집착" },
+  6: { fear: "지지와 안내 없이 홀로 남겨지는 두려움", desire: "안전과 지지를 얻고 싶은 욕망", vice: "불안, 의심", virtue: "용기" },
+  7: { fear: "고통, 박탈감에 대한 두려움", desire: "행복하고 만족스러운 경험을 하고 싶은 욕망", vice: "탐식, 분산", virtue: "절제" },
+  8: { fear: "통제 상실, 타인에 의해 상처받는 두려움", desire: "자신의 삶을 스스로 결정하고 싶은 욕망", vice: "욕망, 과잉", virtue: "무고함" },
+  9: { fear: "상실, 분리, 허무에 대한 두려움", desire: "내면의 평화와 조화를 이루고 싶은 욕망", vice: "나태, 무기력", virtue: "행동력" },
+};
+
+// Build input grid
+const grid = document.getElementById('scoreGrid');
+TYPES.forEach(t => {
+  grid.innerHTML += `
+    <div class="score-card" id="card${t.num}">
+      <div class="type-num">${t.num}</div>
+      <div class="type-label">Type ${t.num} · ${t.center} 중추</div>
+      <div class="type-name">${t.kor}<br><span style="font-size:10px;color:var(--muted);letter-spacing:1px;">${t.eng}</span></div>
+      <div class="score-input-wrap">
+        <input type="number" class="score-input" id="score${t.num}" min="0" max="45" placeholder="0" 
+          oninput="updateBar(${t.num})" onchange="clamp(${t.num})">
+        <span class="score-range">/ 45</span>
+      </div>
+      <div class="score-bar"><div class="score-bar-fill" id="bar${t.num}"></div></div>
+    </div>`;
+});
+
+function updateBar(num) {
+  const val = parseInt(document.getElementById('score' + num).value) || 0;
+  const clamped = Math.min(45, Math.max(0, val));
+  document.getElementById('bar' + num).style.width = (clamped / 45 * 100) + '%';
+}
+
+function clamp(num) {
+  const el = document.getElementById('score' + num);
+  let v = parseInt(el.value);
+  if (isNaN(v)) return;
+  if (v < 0) el.value = 0;
+  if (v > 45) el.value = 45;
+  updateBar(num);
+}
+
+function getScores() {
+  return TYPES.map(t => ({
+    ...t,
+    score: parseInt(document.getElementById('score' + t.num).value) || 0
+  }));
+}
+
+function validate(scores) {
+  return scores.every(s => s.score >= 0 && s.score <= 45);
+}
+
+function drawRadar(scores) {
+  const canvas = document.getElementById('radarCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const R = Math.min(W, H) / 2 - 50;
+  const n = 9;
+  ctx.clearRect(0, 0, W, H);
+
+  const angleOffset = -Math.PI / 2;
+  const angles = Array.from({ length: n }, (_, i) => angleOffset + (2 * Math.PI * i) / n);
+
+  // Grid circles
+  for (let r = 1; r <= 5; r++) {
+    ctx.beginPath();
+    ctx.strokeStyle = r === 5 ? '#2a2a26' : '#1e1e1a';
+    ctx.lineWidth = 1;
+    angles.forEach((a, i) => {
+      const x = cx + (R * r / 5) * Math.cos(a);
+      const y = cy + (R * r / 5) * Math.sin(a);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  // Axis lines
+  angles.forEach(a => {
+    ctx.beginPath();
+    ctx.strokeStyle = '#2a2a26';
+    ctx.lineWidth = 1;
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + R * Math.cos(a), cy + R * Math.sin(a));
+    ctx.stroke();
+  });
+
+  // Data polygon
+  const maxS = Math.max(...scores.map(s => s.score), 1);
+  ctx.beginPath();
+  scores.forEach((s, i) => {
+    const ratio = s.score / 45;
+    const x = cx + R * ratio * Math.cos(angles[i]);
+    const y = cy + R * ratio * Math.sin(angles[i]);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(200, 185, 122, 0.12)';
+  ctx.fill();
+  ctx.strokeStyle = '#c8b97a';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Dots
+  scores.forEach((s, i) => {
+    const ratio = s.score / 45;
+    const x = cx + R * ratio * Math.cos(angles[i]);
+    const y = cy + R * ratio * Math.sin(angles[i]);
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#c8b97a';
+    ctx.fill();
+  });
+
+  // Labels
+  ctx.font = '600 12px Bebas Neue, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  scores.forEach((s, i) => {
+    const x = cx + (R + 28) * Math.cos(angles[i]);
+    const y = cy + (R + 28) * Math.sin(angles[i]);
+    ctx.fillStyle = s.score === Math.max(...scores.map(x => x.score)) ? '#c8b97a' : '#6b6b60';
+    ctx.fillText(s.num, x, y);
+  });
+}
+
+function buildRanking(sorted) {
+  const maxScore = sorted[0].score || 1;
+  const list = document.getElementById('rankList');
+  list.innerHTML = sorted.map((s, i) => `
+    <div class="rank-item">
+      <span class="rank-pos">${i + 1}</span>
+      <span class="rank-type">${s.num}</span>
+      <span class="rank-name">${s.kor}</span>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar" style="width:${(s.score / 45) * 100}%"></div>
+      </div>
+      <span class="rank-score">${s.score}</span>
+    </div>`).join('');
+}
+
+// Interaction descriptions between any two types
+const TYPE_PAIR_DESC = {
+  '1-2': { rel: '보완', desc: '완벽 추구(1)와 타인 헌신(2)이 만나 — 기준과 따뜻함의 긴장. 높은 1이 낮은 2를 억누를 때 냉담해 보일 수 있습니다.' },
+  '1-3': { rel: '긴장', desc: '원칙(1)과 성과(3)의 충돌 — 옳음 vs 유능함. 두 욕구가 내면에서 서로를 검열합니다.' },
+  '1-4': { rel: '역동', desc: '이상주의(1)와 독자성(4)이 공명 — 깊은 내적 기준과 감수성이 결합해 강한 자기비판으로 이어질 수 있습니다.' },
+  '1-5': { rel: '보완', desc: '체계(1)와 분석(5)의 시너지 — 원칙적 사고와 지적 탐구가 서로 강화됩니다.' },
+  '1-6': { rel: '공명', desc: '규범(1)과 안전(6)이 결합 — 책임감과 충성심이 강화되지만 과도한 걱정으로 이어질 수 있습니다.' },
+  '1-7': { rel: '긴장', desc: '자기통제(1)와 자유 추구(7)의 정면 충돌 — 규율 vs 즐거움. 내면의 가장 큰 갈등 축 중 하나입니다.' },
+  '1-8': { rel: '역동', desc: '원칙(1)과 의지(8)가 만나 강한 신념과 행동력을 만듭니다. 단 통제권 다툼이 내면 갈등을 만들기도 합니다.' },
+  '1-9': { rel: '보완', desc: '완벽주의(1)와 수용성(9)의 조화 — 이상 추구와 평화 욕구가 균형을 이루며 유연한 원칙주의를 만듭니다.' },
+  '2-3': { rel: '공명', desc: '돌봄(2)과 인정 욕구(3)가 결합 — 타인에게 유용하고 인정받으려는 욕구가 강하게 나타납니다.' },
+  '2-4': { rel: '역동', desc: '헌신(2)과 감수성(4)의 만남 — 깊은 공감력과 풍부한 감정 표현. 하지만 자기 욕구를 무시하기 쉽습니다.' },
+  '2-5': { rel: '긴장', desc: '관계 욕구(2)와 고독 욕구(5)의 대립 — 연결과 분리의 내적 줄다리기가 일어납니다.' },
+  '2-6': { rel: '보완', desc: '돌봄(2)과 충성(6)이 결합 — 신뢰로운 관계에 헌신하는 따뜻하고 안정적인 에너지입니다.' },
+  '2-7': { rel: '공명', desc: '사랑받으려는 욕구(2)와 즐거움(7)이 만나 — 사교적이고 활기찬 에너지. 관계 속 기쁨을 극대화합니다.' },
+  '2-8': { rel: '긴장', desc: '부드러운 헌신(2)과 강렬한 지배력(8)의 충돌 — 취약함을 다루는 방식이 서로 정반대입니다.' },
+  '2-9': { rel: '보완', desc: '타인 배려(2)와 조화 추구(9)의 결합 — 주변을 편안하게 만드는 따뜻한 에너지가 강화됩니다.' },
+  '3-4': { rel: '긴장', desc: '외적 성취(3)와 내적 진정성(4)의 갈등 — 이미지와 정체성 사이에서 깊은 혼란을 겪을 수 있습니다.' },
+  '3-5': { rel: '보완', desc: '실행력(3)과 지식(5)의 시너지 — 유능하고 분석적인 성취를 만들어냅니다.' },
+  '3-6': { rel: '역동', desc: '성공 욕구(3)와 안전 욕구(6)가 교차 — 인정받으면서도 안전하고 싶은 복합적 동기를 만듭니다.' },
+  '3-7': { rel: '공명', desc: '성취(3)와 자유(7)가 결합 — 야망과 긍정 에너지가 시너지를 이루며 강한 추진력을 만듭니다.' },
+  '3-8': { rel: '역동', desc: '목표 지향(3)과 강한 의지(8)의 결합 — 매우 강력하고 결단력 있는 에너지지만, 과도하면 독단적이 됩니다.' },
+  '3-9': { rel: '긴장', desc: '인정받으려는 욕구(3)와 내적 평화 추구(9)의 충돌 — 활동적 자아와 편안한 자아 사이에서 방황합니다.' },
+  '4-5': { rel: '공명', desc: '감수성(4)과 지적 탐구(5)의 깊은 공명 — 독특하고 심층적인 내면 세계를 형성합니다.' },
+  '4-6': { rel: '역동', desc: '독자성(4)과 안전 욕구(6)의 교차 — 특별하고 싶으면서도 소속되고 싶은 복잡한 심리가 나타납니다.' },
+  '4-7': { rel: '긴장', desc: '깊은 감정(4)과 감정 회피(7)의 대립 — 슬픔에 머물려는 경향과 도망치려는 경향이 충돌합니다.' },
+  '4-8': { rel: '역동', desc: '강렬한 감수성(4)과 원초적 에너지(8)의 결합 — 매우 강렬하고 카리스마 있지만 폭발적일 수 있습니다.' },
+  '4-9': { rel: '긴장', desc: '독자성 추구(4)와 조화 추구(9)의 갈등 — 두드러지고 싶은 욕구와 섞이고 싶은 욕구 사이의 긴장입니다.' },
+  '5-6': { rel: '보완', desc: '지식(5)과 충성(6)의 결합 — 신중하고 분석적인 안전 추구. 믿을 수 있는 지적 파트너십을 만듭니다.' },
+  '5-7': { rel: '긴장', desc: '깊이(5)와 폭(7)의 대립 — 하나에 집중하고 싶은 욕구와 모든 것을 경험하고 싶은 욕구가 충돌합니다.' },
+  '5-8': { rel: '역동', desc: '분석(5)과 행동력(8)의 결합 — 전략적 강인함을 만듭니다. 두 힘이 균형을 이루면 매우 효과적입니다.' },
+  '5-9': { rel: '보완', desc: '고독(5)과 평화(9)의 조화 — 조용하고 비침습적인 에너지. 내면의 고요함을 소중히 여깁니다.' },
+  '6-7': { rel: '긴장', desc: '불안(6)과 낙관(7)의 충돌 — 최악을 걱정하는 성향과 최선을 기대하는 성향이 내면에서 싸웁니다.' },
+  '6-8': { rel: '역동', desc: '충성(6)과 강인함(8)의 결합 — 강한 보호 본능과 책임감. 신뢰하는 대상에게는 강력한 동맹자입니다.' },
+  '6-9': { rel: '보완', desc: '안전 추구(6)와 평화 추구(9)의 조화 — 안정적이고 갈등을 피하는 온화한 에너지입니다.' },
+  '7-8': { rel: '공명', desc: '자유(7)와 힘(8)의 결합 — 강렬하고 대담한 에너지. 원하는 것을 적극적으로 추구합니다.' },
+  '7-9': { rel: '긴장', desc: '활동적 즐거움(7)과 수동적 평화(9)의 충돌 — 자극을 찾는 욕구와 현상 유지 욕구가 맞섭니다.' },
+  '8-9': { rel: '역동', desc: '강렬함(8)과 평화(9)의 대극적 결합 — 폭발적 에너지와 깊은 내면의 고요함이 공존합니다.' },
+};
+
+function getPairKey(a, b) {
+  return a < b ? `${a}-${b}` : `${b}-${a}`;
+}
+
+function getTensionClass(rel) {
+  if (rel === '긴장') return 'ix-t-high';
+  if (rel === '역동') return 'ix-t-mid';
+  return 'ix-t-low';
+}
+
+function buildInteraction(scores) {
+  const sorted = [...scores].sort((a, b) => b.score - a.score);
+  const high = sorted.slice(0, 3); // top 3
+  const low  = sorted.slice(6, 9); // bottom 3
+
+  const highAvg = Math.round(high.reduce((s, t) => s + t.score, 0) / 3);
+  const lowAvg  = Math.round(low.reduce((s, t) => s + t.score, 0) / 3);
+  const totalH  = high.reduce((s, t) => s + t.score, 0);
+  const totalL  = low.reduce((s, t) => s + t.score, 0);
+  const totalAll = totalH + totalL;
+  const hPct = totalAll ? Math.round((totalH / totalAll) * 100) : 50;
+  const lPct = 100 - hPct;
+
+  // Build balance description
+  let balDesc = '';
+  const diff = highAvg - lowAvg;
+  if (diff >= 25) {
+    balDesc = `<span style="color:var(--accent);">상위 유형(${high.map(t=>t.num+'번').join('·')})</span>이 압도적으로 강합니다. 하위 유형(${low.map(t=>t.num+'번').join('·')})의 특성은 현재 거의 발현되지 않고 있으며, 이 '억압된' 면들이 때로는 무의식적으로 튀어나올 수 있습니다.`;
+  } else if (diff >= 15) {
+    balDesc = `상위 유형과 하위 유형의 점수 차이가 뚜렷합니다. <span style="color:var(--accent);">${high.map(t=>t.num+'번').join('·')}</span>이 성격의 주도권을 쥐고 있으며, <span style="color:var(--accent2);">${low.map(t=>t.num+'번').join('·')}</span>의 에너지는 보완적 역할에 머뭅니다.`;
+  } else if (diff >= 5) {
+    balDesc = `상위·하위 그룹 간 차이가 완만합니다. <span style="color:var(--accent);">${high.map(t=>t.num+'번').join('·')}</span>이 우세하지만, <span style="color:var(--accent2);">${low.map(t=>t.num+'번').join('·')}</span>의 특성도 상황에 따라 유연하게 등장합니다.`;
+  } else {
+    balDesc = `상위와 하위 점수 차이가 매우 작습니다. 여러 유형의 에너지가 고르게 분포되어, 상황에 따라 다른 면이 앞에 나오는 <span style="color:var(--accent);">복합적·유동적 성격 구조</span>를 가집니다.`;
+  }
+
+  // Build pairs (each high × each low = 9 combos, pick most relevant by score sum)
+  const pairs = [];
+  high.forEach(h => {
+    low.forEach(l => {
+      const key = getPairKey(h.num, l.num);
+      const info = TYPE_PAIR_DESC[key];
+      if (info) pairs.push({ h, l, info, sum: h.score + l.score });
+    });
+  });
+  // Sort by score gap (higher gap = more interesting contrast)
+  pairs.sort((a, b) => (b.h.score - b.l.score) - (a.h.score - a.l.score));
+  const topPairs = pairs.slice(0, 4);
+
+  const el = document.getElementById('interactionContent');
+  el.innerHTML = `
+    <!-- Two group boxes -->
+    <div class="ix-groups">
+      <div class="ix-gbox">
+        <div class="ix-gtitle">
+          <div class="ix-dot" style="background:var(--accent);"></div>
+          <span style="color:var(--accent);">HIGH</span>
+          <span style="color:var(--muted);"> · 점수 상위 3개 유형</span>
+        </div>
+        ${high.map(t => `
+          <div class="ix-row">
+            <span class="ix-num" style="color:var(--accent);">${t.num}</span>
+            <span class="ix-name">${t.kor}</span>
+            <div class="ix-bwrap"><div class="ix-bfill" style="width:${(t.score/45)*100}%;background:var(--accent);"></div></div>
+            <span class="ix-score" style="color:var(--accent);">${t.score}</span>
+          </div>`).join('')}
+        <div class="ix-avg">
+          <span>평균 점수</span>
+          <span class="ix-avg-val" style="color:var(--accent);">${highAvg}</span>
+        </div>
+      </div>
+      <div class="ix-gbox">
+        <div class="ix-gtitle">
+          <div class="ix-dot" style="background:var(--accent2);"></div>
+          <span style="color:var(--accent2);">LOW</span>
+          <span style="color:var(--muted);"> · 점수 하위 3개 유형</span>
+        </div>
+        ${low.map(t => `
+          <div class="ix-row">
+            <span class="ix-num" style="color:var(--accent2);">${t.num}</span>
+            <span class="ix-name">${t.kor}</span>
+            <div class="ix-bwrap"><div class="ix-bfill" style="width:${(t.score/45)*100}%;background:var(--accent2);"></div></div>
+            <span class="ix-score" style="color:var(--accent2);">${t.score}</span>
+          </div>`).join('')}
+        <div class="ix-avg">
+          <span>평균 점수</span>
+          <span class="ix-avg-val" style="color:var(--accent2);">${lowAvg}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pair interactions -->
+    <div style="font-size:9px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;">주요 상호작용 쌍</div>
+    <div>
+      ${topPairs.map(p => `
+        <div class="ix-pair">
+          <div class="ix-badges">
+            <span class="ix-bh">↑ ${p.h.num}번 ${p.h.kor} (${p.h.score})</span>
+            <div class="ix-arrow">↕</div>
+            <span class="ix-bl">↓ ${p.l.num}번 ${p.l.kor} (${p.l.score})</span>
+          </div>
+          <div class="ix-desc">
+            <span style="color:var(--text);font-weight:500;">[${p.info.rel}]</span> ${p.info.desc}
+          </div>
+          <div class="ix-tension ${getTensionClass(p.info.rel)}">${p.info.rel}</div>
+        </div>`).join('')}
+    </div>
+
+    <!-- Balance bar -->
+    <div class="ix-balance">
+      <div class="ix-bal-hdr">
+        <span style="color:var(--accent);">HIGH 우세도</span>
+        <span>HIGH ↔ LOW 균형</span>
+        <span style="color:var(--accent2);">LOW 잠재력</span>
+      </div>
+      <div class="ix-bal-track">
+        <div class="ix-bal-h" style="width:${hPct/2}%;"></div>
+        <div class="ix-bal-l" style="width:${lPct/2}%;"></div>
+        <div class="ix-bal-mid"></div>
+      </div>
+      <div class="ix-bal-feet">
+        <span>${high.map(t=>t.num).join('·')} — ${hPct}%</span>
+        <span>${lPct}% — ${low.map(t=>t.num).join('·')}</span>
+      </div>
+      <div class="ix-bal-result">${balDesc}</div>
+    </div>`;
+}
+
+async function callClaude(prompt) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 2500,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+  const data = await response.json();
+  return data.content?.[0]?.text || "";
+}
+
+async function analyze() {
+  const scores = getScores();
+  if (!validate(scores)) {
+    document.getElementById('errorMsg').classList.add('visible');
+    return;
+  }
+  document.getElementById('errorMsg').innerHTML = '⚠ 모든 항목에 0–45 사이의 점수를 입력해주세요.';
+  document.getElementById('errorMsg').classList.remove('visible');
+
+  // Show loading
+  document.getElementById('loadingOverlay').classList.add('active');
+
+  const sorted = [...scores].sort((a, b) => b.score - a.score);
+  const dominant = sorted[0];
+  const second = sorted[1];
+  const type = TYPES.find(t => t.num === dominant.num);
+  const core = CORE_DESC[dominant.num];
+
+  // Wing
+  const w1 = scores.find(s => s.num === type.wings[0]);
+  const w2 = scores.find(s => s.num === type.wings[1]);
+  const strongerWing = w1.score >= w2.score ? w1 : w2;
+  const otherWing = w1.score >= w2.score ? w2 : w1;
+
+  // Integration/Disintegration
+  const integType = TYPES.find(t => t.num === type.integration);
+  const disintType = TYPES.find(t => t.num === type.disintegration);
+  const integScore = scores.find(s => s.num === type.integration).score;
+  const disintScore = scores.find(s => s.num === type.disintegration).score;
+
+  // Prepare score summary for AI
+  const scoreStr = scores.map(s => `유형${s.num}(${s.kor}): ${s.score}점`).join(', ');
+
+  const aiPrompt = `당신은 에니어그램 전문 분석가입니다. 다음은 사용자의 에니어그램 유형별 점수입니다:
+
+${scoreStr}
+
+지배 유형: ${dominant.num}번 ${dominant.kor} (${dominant.score}점)
+2위 유형: ${second.num}번 ${second.kor} (${second.score}점)
+날개: ${strongerWing.num}번 (${strongerWing.score}점, 더 강함) / ${otherWing.num}번 (${otherWing.score}점)
+통합 방향: ${integType.num}번 ${integType.kor} (점수: ${integScore}점)
+분열 방향: ${disintType.num}번 ${disintType.kor} (점수: ${disintScore}점)
+
+이 점수 패턴을 바탕으로 **20대~30대가 바로 공감할 수 있는 언어**로 심층 분석을 3~4문단 작성해주세요.
+
+작성 규칙:
+- 취업, 연애, 친구 관계, 번아웃, SNS, 자존감, 커리어 고민 같은 이 세대의 실제 맥락을 자연스럽게 녹여주세요
+- "당신은 ~한 사람입니다" 식의 직접 화법으로 말을 걸듯 써주세요
+- 딱딱한 심리학 용어보다 일상적인 표현을 우선하되, 통찰은 깊게 유지하세요
+- 단점도 솔직하게 말하되 비난이 아닌 "그럴 수밖에 없는 이유"를 함께 짚어주세요
+- 성장 방향은 거창한 조언이 아닌 작고 구체적인 힌트로 마무리해주세요
+- 한국어로 작성하세요`;
+
+  try {
+    const aiText = await callClaude(aiPrompt);
+
+    // Hide loading
+    document.getElementById('loadingOverlay').classList.remove('active');
+
+    // Show results
+    document.getElementById('resultSection').classList.add('active');
+    document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+
+    // Dominant type
+    document.getElementById('dominantDisplay').innerHTML = `
+      <div class="dominant-type">
+        <div class="dominant-num">${dominant.num}</div>
+        <div class="dominant-info">
+          <div class="dominant-name">${dominant.kor}</div>
+          <div class="dominant-eng">${dominant.eng}</div>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <span class="tag accent">${type.center} 중추</span>
+        <span class="tag">${type.triad} triad</span>
+        <span class="tag blue">Score ${dominant.score}</span>
+      </div>`;
+
+    document.getElementById('dominantContent').innerHTML = `
+      <div style="margin-bottom:10px;"><span class="highlight">핵심 두려움</span><br>${core.fear}</div>
+      <div style="margin-bottom:10px;"><span class="highlight">핵심 욕망</span><br>${core.desire}</div>
+      <div style="margin-bottom:6px;"><span style="color:var(--red);">부덕 (Vice)</span> ${core.vice}</div>
+      <div><span style="color:var(--accent2);">덕목 (Virtue)</span> ${core.virtue}</div>`;
+
+    // Ranking
+    buildRanking(sorted);
+
+    // Radar
+    drawRadar(scores);
+
+    // Interaction
+    buildInteraction(scores);
+
+    // Wing
+    document.getElementById('wingContent').innerHTML = `
+      <div class="dominant-type" style="gap:12px;margin-bottom:12px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;color:var(--accent);line-height:1;">${dominant.num}w${strongerWing.num}</div>
+        <div style="padding-bottom:4px;">
+          <div style="font-size:13px;color:var(--text);font-family:'Noto Sans KR',sans-serif;">주날개</div>
+          <div style="font-size:10px;letter-spacing:1px;color:var(--muted);">${strongerWing.kor} · ${strongerWing.score}점</div>
+        </div>
+      </div>
+      <p>주 날개 <span class="highlight">${strongerWing.num}번(${strongerWing.kor})</span>이 ${dominant.num}번의 성격에 강한 영향을 미치고 있습니다 (${strongerWing.score}점). 
+      반대 날개 <span style="color:var(--muted);">${otherWing.num}번(${otherWing.kor})</span>은 상대적으로 약합니다 (${otherWing.score}점).<br><br>
+      날개 차이: <span class="highlight">${Math.abs(w1.score - w2.score)}점</span> — ${Math.abs(w1.score - w2.score) > 20 ? '날개 성향이 뚜렷합니다' : '양 날개가 균형적으로 발달해 있습니다'}.`;
+
+    // Arrow
+    document.getElementById('arrowContent').innerHTML = `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:9px;letter-spacing:2px;color:var(--accent2);text-transform:uppercase;margin-bottom:6px;">통합 (성장) →</div>
+        <span class="highlight2">${integType.num}번 ${integType.kor}</span> · ${integScore}점<br>
+        <span style="font-size:11px;color:var(--muted);">심리적으로 건강할 때 ${integType.num}번의 긍정적 특성을 통합합니다</span>
+      </div>
+      <div>
+        <div style="font-size:9px;letter-spacing:2px;color:var(--red);text-transform:uppercase;margin-bottom:6px;">분열 (스트레스) →</div>
+        <span style="color:var(--red);">${disintType.num}번 ${disintType.kor}</span> · ${disintScore}점<br>
+        <span style="font-size:11px;color:var(--muted);">극심한 스트레스 상황에서 ${disintType.num}번의 부정적 특성이 나타납니다</span>
+      </div>`;
+
+    // Core motivation
+    const triCenter = { anger: '장(본능)', shame: '가슴(감정)', fear: '머리(사고)' };
+    document.getElementById('motivContent').innerHTML = `
+      <div style="margin-bottom:12px;">
+        <span class="tag accent">${triCenter[type.triad]}</span>
+        <span class="tag">${type.triad} center</span>
+      </div>
+      <div style="margin-bottom:10px;"><span class="highlight">두려움</span><br>${core.fear}</div>
+      <div style="margin-bottom:10px;"><span class="highlight">욕망</span><br>${core.desire}</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.8;">
+        ${dominant.num}번은 <strong style="color:var(--text);">${triCenter[type.triad]}</strong> 중추에 속하며, ${type.triad === 'anger' ? '분노와 행동력' : type.triad === 'shame' ? '수치심과 자아상' : '두려움과 안전'}을 핵심 테마로 삼습니다.
+      </div>`;
+
+    // AI content
+    const aiEl = document.getElementById('aiContent');
+    aiEl.innerHTML = aiText.replace(/\n/g, '<br>');
+
+    // Solution — async, non-blocking
+    buildSolution(scores, dominant, second, strongerWing, integType, disintType, scoreStr);
+
+  } catch (e) {
+    document.getElementById('loadingOverlay').classList.remove('active');
+    document.getElementById('aiContent').innerHTML = '분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+    document.getElementById('resultSection').classList.add('active');
+  }
+}
+
+async function buildSolution(scores, dominant, second, strongerWing, integType, disintType, scoreStr) {
+  const solPrompt = `당신은 에니어그램 기반 라이프 코치입니다. 다음은 20-30대 사용자의 에니어그램 점수입니다:
+
+${scoreStr}
+
+지배 유형: ${dominant.num}번 ${dominant.kor} (${dominant.score}점)
+2위 유형: ${second.num}번 ${second.kor} (${second.score}점)
+주날개: ${strongerWing.num}번 ${strongerWing.kor}
+통합 방향: ${integType.num}번 ${integType.kor}
+분열 방향: ${disintType.num}번 ${disintType.kor}
+
+이 사람에게 맞는 솔루션을 **정확히 아래 JSON 형식**으로만 응답하세요. JSON 외 텍스트는 절대 포함하지 마세요.
+
+각 카드는 두 파트로 구성됩니다:
+1. insight(통찰): 이 패턴을 가진 사람에게 왜 이 방향이 필요한지 — 공감되는 심리적 이유를 20-30대 언어로
+2. activities(활동): 실제로 해볼 수 있는 구체적 활동 2~3가지. 다음 유형 중에서 이 사람에게 맞는 것으로 골라주세요:
+   - 대형 강의·강연 참석 (철학, 심리학, 사회학, 자기계발 등)
+   - 인문학 독서 (특정 장르나 주제 명시)
+   - 글쓰기·일기 (감정일기, 생각정리, 브레인덤프 등)
+   - 명상·마음챙김 루틴
+   - 취미 커뮤니티·소모임 참여
+   - 혼자 떠나는 여행 또는 도시 산책
+   - 상담·코칭
+   - 창작 활동 (그림, 음악, 글 등)
+   - 운동·신체 활동 루틴
+   - 팟캐스트·다큐멘터리 시청
+   - 그 외 이 유형에게 맞는 활동
+
+{
+  "cards": [
+    {
+      "icon": "이모지 1개",
+      "area": "영역명 (연애·관계 / 커리어 / 멘탈관리 / 자기이해 / 일상습관 / 소통방식 중 하나)",
+      "title": "솔루션 핵심 제목 (15자 이내)",
+      "insight": "이 유형에게 왜 이게 필요한지. 20-30대 공감 언어로 2문장.",
+      "activities": ["활동1 (구체적으로)", "활동2 (구체적으로)", "활동3 (구체적으로)"]
+    }
+  ],
+  "closing": "전체를 아우르는 따뜻한 마무리 메시지. 이 사람의 패턴을 인정하면서 앞으로 나아갈 방향을 2-3문장으로."
+}
+
+cards는 정확히 3개, 각각 다른 영역으로 구성하세요.`;
+
+  try {
+    const data = await callClaude(solPrompt);
+    const clean = data.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    const grid = document.getElementById('solutionGrid');
+    grid.innerHTML = parsed.cards.map((c, i) => `
+      <div class="sol-card">
+        <div class="sol-num">${String(i+1).padStart(2,'0')}</div>
+        <span class="sol-icon">${c.icon}</span>
+        <div class="sol-area">${c.area}</div>
+        <div class="sol-title">${c.title}</div>
+        <div class="sol-desc">${c.insight}</div>
+        <div class="sol-activities">
+          ${c.activities.map(a => `<div class="sol-act-item">→ ${a}</div>`).join('')}
+        </div>
+      </div>`).join('');
+
+    document.getElementById('solutionClosing').innerHTML = parsed.closing.replace(/\n/g, '<br>');
+    document.getElementById('solutionSection').style.display = 'block';
+    document.getElementById('solutionSection').style.animation = 'fadeUp 0.7s ease both';
+  } catch(e) {
+    // silently fail — solution is bonus content
+  }
+}
+
+function reset() {
+  TYPES.forEach(t => {
+    document.getElementById('score' + t.num).value = '';
+    document.getElementById('bar' + t.num).style.width = '0%';
+  });
+  document.getElementById('resultSection').classList.remove('active');
+  document.getElementById('solutionSection').style.display = 'none';
+  document.getElementById('solutionGrid').innerHTML = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
